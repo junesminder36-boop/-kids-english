@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bobo English - 儿童英语启蒙</title>
+    <script>
+      window.quickAvatar = function (button) {
+        document.querySelectorAll(".avatar-choice button").forEach(function (item) {
+          item.classList.toggle("active", item === button);
+        });
+      };
+
+      window.quickLogin = function (event) {
+        if (event && event.preventDefault) event.preventDefault();
+        try {
+          var input = document.querySelector("#nicknameInput");
+          var name = input && input.value ? input.value.trim() : "";
+          if (!name) {
+            if (input && input.focus) input.focus();
+            return false;
+          }
+          var activeAvatar = document.querySelector(".avatar-choice button.active");
+          var avatar = activeAvatar ? activeAvatar.dataset.avatar : "🐻";
+          var accounts = {};
+          try {
+            accounts = JSON.parse(localStorage.getItem("boboEnglishAccountsV3") || "{}");
+          } catch (error) {
+            accounts = {};
+          }
+          accounts[name] = accounts[name] || {
+            name: name,
+            avatar: avatar,
+            completed: [],
+            currentLesson: "apple-to-dog",
+            stars: 0,
+            coins: 0,
+            streak: 1,
+            minutes: 0,
+            speaking: 0,
+            joinedAt: new Date().toISOString()
+          };
+          localStorage.setItem("boboEnglishAccountsV3", JSON.stringify(accounts));
+          localStorage.setItem("boboEnglishActiveAccountV3", name);
+          if (typeof window.loadAccount === "function") {
+            window.loadAccount(name);
+          } else {
+            document.querySelector("#login")?.classList.add("hidden");
+            document.querySelector("#appShell")?.classList.remove("hidden");
+            location.hash = "home";
+          }
+        } catch (error) {
+          location.hash = "home";
+        }
+        return false;
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <section id="login" class="login-page" aria-labelledby="login-title">
+      <div class="login-card">
+        <div class="login-mascots" aria-hidden="true"><span>🐻</span><span>🐱</span><span>🦊</span></div>
+        <p class="login-kicker">Bobo English</p>
+        <h1 id="login-title">创建你的小小英语账号</h1>
+        <p>输入昵称后进入专属学习路线，每个昵称都会保存自己的课程进度、星星和金币。</p>
+        <form id="loginForm" class="login-form" action="javascript:void(0)" onsubmit="return quickLogin(event)">
+          <label for="nicknameInput">昵称 Nickname</label>
+          <input id="nicknameInput" name="nickname" type="text" maxlength="16" placeholder="比如：可可 / Lucas" autocomplete="nickname" required />
+          <div class="avatar-choice" aria-label="选择头像">
+            <button type="button" class="active" data-avatar="🐻" onclick="quickAvatar(this)">🐻</button>
+            <button type="button" data-avatar="🐱" onclick="quickAvatar(this)">🐱</button>
+            <button type="button" data-avatar="🦊" onclick="quickAvatar(this)">🦊</button>
+            <button type="button" data-avatar="🐰" onclick="quickAvatar(this)">🐰</button>
+          </div>
+          <a class="pink-btn login-start-link" id="loginStartLink" href="#home" onclick="return quickLogin(event)">进入学习 · Start</a>
+        </form>
+      </div>
+    </section>
+
+    <div class="app-shell" id="appShell">
+      <aside class="side-nav" aria-label="主导航">
+        <a class="brand" href="#home" data-route="home" aria-label="Bobo English 首页">
+          <span class="brand-mark">B</span>
+          <span>Bobo<br />English</span>
+        </a>
+        <nav class="nav-links">
+          <a class="nav-link active" href="#home" data-route="home">🏠 <span>首页</span></a>
+          <a class="nav-link" href="#map" data-route="map">🍭 <span>学习地图</span></a>
+          <a class="nav-link" href="#lesson" data-route="lesson">🔤 <span>课程</span></a>
+          <a class="nav-link" href="#game" data-route="game">🎮 <span>互动游戏</span></a>
+          <a class="nav-link" href="#speaking" data-route="speaking">🎙️ <span>AI口语</span></a>
+          <a class="nav-link" href="#report" data-route="report">📊 <span>家长报告</span></a>
+        </nav>
+        <button class="mini-profile" type="button">
+          <span class="avatar tiny" id="sideAvatar">🐻</span>
+          <span id="sideName">Lv. 1</span>
+          <small id="logoutBtn">切换</small>
+        </button>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <div class="greeting">
+            <span class="avatar" id="topAvatar">🐻</span>
+            <div>
+              <strong id="topGreeting">Hi!</strong>
+              <small id="topSubGreeting">Ready for English?</small>
+            </div>
+          </div>
+          <div class="rewards" aria-label="奖励状态">
+            <span title="连续打卡">🔥 7</span>
+            <span title="星星">⭐ 48</span>
+            <span title="金币">🪙 120</span>
+          </div>
+          <div class="voice-toggle" aria-label="声音选择">
+            <button class="active" type="button" data-voice-gender="female">👧 女声</button>
+            <button type="button" data-voice-gender="male">👦 男声</button>
+          </div>
+        </header>
+
+        <section id="home" class="page active-page" aria-labelledby="home-title">
+          <div class="hero-grid">
+            <article class="welcome-card">
+              <p>UNIT 3 · LESSON 5</p>
+              <h1 id="home-title">At the Farm <span>🐄</span></h1>
+              <h2>在农场里</h2>
+              <div class="progress-track"><span style="width: 60%"></span></div>
+              <div class="continue-row">
+                <small>6 / 10 完成 · Keep going!</small>
+                <button class="primary-btn" data-route="lesson">▶ 继续学习</button>
+              </div>
+            </article>
+
+            <article class="chat-card">
+              <div class="mascot-stage">
+                <div class="bobo bear">
+                  <span class="ear left"></span><span class="ear right"></span>
+                  <span class="face">ʕ•ᴥ•ʔ</span>
+                </div>
+                <span class="spark star-one">✦</span>
+              </div>
+              <p class="speech">Good morning! 早上好～</p>
+              <button class="pink-btn" data-route="speaking">🎤 和 Bobo 聊天</button>
+            </article>
+          </div>
+
+          <div class="section-head">
+            <div>
+              <h2>Today's Adventure</h2>
+              <p>今天的冒险</p>
+            </div>
+            <button class="soft-btn" data-route="map">全部 6 项 →</button>
+          </div>
+
+          <div class="entry-grid" aria-label="学习入口">
+            <button class="entry purple" data-route="lesson"><span>🔠</span><strong>Letters</strong><small>字母 ABC</small></button>
+            <button class="entry pink" data-route="lesson"><span>🔊</span><strong>Phonics</strong><small>拼读</small></button>
+            <button class="entry yellow" data-route="game"><span>🍎</span><strong>Words</strong><small>单词识图</small></button>
+            <button class="entry green" data-route="speaking"><span>🎙️</span><strong>Talk</strong><small>AI 口语</small></button>
+            <button class="entry blue" data-route="lesson"><span>🎵</span><strong>Songs</strong><small>儿歌动画</small></button>
+            <button class="entry coral" data-route="map"><span>📖</span><strong>Stories</strong><small>故事阅读</small></button>
+          </div>
+
+          <article class="curriculum-card">
+            <div class="section-head compact">
+              <div>
+                <h2>Learning Path</h2>
+                <p>阶段式启蒙路线 · 每天 10-15 分钟</p>
+              </div>
+              <span class="badge" id="homeProgressBadge">0 / 36 lessons</span>
+            </div>
+            <div class="phase-grid" id="homePhases" aria-label="课程阶段"></div>
+          </article>
+
+          <article class="checkin-card">
+            <div>
+              <h3>This Week</h3>
+              <p>本周打卡</p>
+            </div>
+            <div class="days" aria-label="本周打卡">
+              <span class="done">M</span><span class="done">T</span><span class="done">W</span><span class="done">T</span><span class="done">F</span><span class="today">S</span><span>S</span>
+            </div>
+          </article>
+        </section>
+
+        <section id="map" class="page" aria-labelledby="map-title">
+          <div class="page-title">
+            <div>
+              <h1 id="map-title">Candy Road Map</h1>
+              <p>糖果关卡地图 · 跟着 Bobo 解锁新能力</p>
+            </div>
+            <button class="primary-btn" data-route="lesson">开始当前关</button>
+          </div>
+          <div class="map-board">
+            <svg class="candy-path" viewBox="0 0 920 520" role="img" aria-label="蜿蜒糖果学习路径">
+              <path d="M80 430 C160 340 120 210 250 210 S410 390 520 300 S620 110 800 120" />
+            </svg>
+            <div class="level unlocked" style="left:7%; top:76%"><span>1</span><small>Aa</small></div>
+            <div class="level unlocked" style="left:20%; top:52%"><span>2</span><small>Bb</small></div>
+            <div class="level current" style="left:35%; top:43%"><span>3</span><small>Cc</small></div>
+            <div class="level locked" style="left:51%; top:63%"><span>4</span><small>Cat</small></div>
+            <div class="level locked" style="left:65%; top:37%"><span>5</span><small>Sing</small></div>
+            <div class="level locked" style="left:82%; top:21%"><span>6</span><small>Story</small></div>
+            <div class="map-bobo" aria-label="Bobo 停在当前关">🐻</div>
+          </div>
+          <div class="map-details" id="mapDetails">
+            <article><strong>当前关</strong><p>选择已解锁课时开始学习。</p></article>
+            <article><strong>解锁奖励</strong><p>完成每课获得 3 颗星和 20 金币。</p></article>
+            <article><strong>学习建议</strong><p>5 岁儿童每天 10-15 分钟即可。</p></article>
+          </div>
+          <div class="lesson-road" id="lessonRoad" aria-label="阶段课程列表"></div>
+        </section>
+
+        <section id="lesson" class="page" aria-labelledby="lesson-title">
+          <div class="lesson-layout">
+            <article class="letter-card">
+              <div class="stepper" id="lessonStepper"><span class="active"></span><span class="active"></span><span></span><span></span></div>
+              <p id="lessonMeta">STEP 1 / 5 · Listen and Say</p>
+              <h1 id="lesson-title">C c</h1>
+              <div class="phonics-line" id="phonicsLine">/k/ like <strong>cat</strong> · 像 cat 的开头音</div>
+              <div class="lesson-actions">
+                <button class="round-action" id="listenBtn" type="button">🔊<span>听一听</span></button>
+                <button class="round-action" id="recordBtn" type="button">🎙️<span>录音跟读</span></button>
+              </div>
+              <p id="lessonFeedback" class="feedback">Tap listen to hear: C says /k/.</p>
+              <button class="primary-btn lesson-start" id="startLessonBtn" type="button">学习这一课 · Start Lesson</button>
+              <button class="soft-btn lesson-next" id="nextStepBtn" type="button">下一步 →</button>
+              <button class="pink-btn lesson-complete hidden" id="completeLessonBtn" type="button">完成本课 · Get Stars</button>
+            </article>
+
+            <article class="word-panel">
+              <div class="section-head compact">
+                <div><h2>Choose a Lesson</h2><p>先选阶段，再学习这一课</p></div>
+                <span class="badge" id="lessonBadge">Starter</span>
+              </div>
+              <div class="course-syllabus" id="lessonPicker" aria-label="阶段课程选择"></div>
+              <div class="lesson-tabs" id="lessonTabs" aria-label="学习步骤">
+                <button class="active" data-step="listen">1 听</button>
+                <button data-step="words">2 认</button>
+                <button data-step="sentence">3 说</button>
+                <button data-step="quiz">4 练</button>
+                <button data-step="story">5 读</button>
+              </div>
+              <div class="lesson-step active" id="step-listen">
+                <h3>Listen First · 先听一听</h3>
+                <p id="listenGoal">认识字母和声音。</p>
+              </div>
+              <div class="lesson-step" id="step-words">
+                <h3>Word Cards · 单词识图</h3>
+                <div class="word-grid" id="wordGrid"></div>
+              </div>
+              <div class="lesson-step" id="step-sentence">
+                <h3>Sentence Pattern · 简单句型</h3>
+                <div class="sentence-card" id="sentenceCard"></div>
+                <div class="mini-activities" id="sentenceChoices"></div>
+              </div>
+              <div class="lesson-step" id="step-quiz">
+                <h3>Quick Check · 小测验</h3>
+                <div class="quiz-card" id="quizCard"></div>
+              </div>
+              <div class="lesson-step" id="step-story">
+                <h3>Song & Story · 儿歌故事</h3>
+                <div class="story-card" id="storyCard"></div>
+              </div>
+              <div class="mini-activities">
+                <button data-route="game">连线题 Match</button>
+                <button data-route="game">选择题 Quiz</button>
+                <button data-route="speaking">AI 对话 Talk</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section id="game" class="page" aria-labelledby="game-title">
+          <div class="page-title">
+            <div>
+              <h1 id="game-title">Animal Word Match</h1>
+              <p>拖拽单词到对应动物身上 · Drag the word to the animal</p>
+            </div>
+            <div class="score-pill">⭐ <span id="gameScore">0</span> / 3</div>
+          </div>
+          <div class="game-layout">
+            <article class="game-card">
+              <div class="drop-zones">
+                <div class="animal-drop" data-answer="cat"><span>🐱</span><strong>小猫</strong></div>
+                <div class="animal-drop" data-answer="fox"><span>🦊</span><strong>狐狸</strong></div>
+                <div class="animal-drop" data-answer="bear"><span>🐻</span><strong>小熊</strong></div>
+              </div>
+              <div class="drag-words">
+                <button draggable="true" class="drag-word" data-word="bear">bear</button>
+                <button draggable="true" class="drag-word" data-word="cat">cat</button>
+                <button draggable="true" class="drag-word" data-word="fox">fox</button>
+              </div>
+              <p id="gameMessage" class="feedback">把英文单词拖到正确的小动物上。</p>
+            </article>
+
+            <article class="practice-card">
+              <h2>Talk with Bobo</h2>
+              <div class="dialogue">
+                <p><b>Bobo:</b> What animal do you like?</p>
+                <p><b id="dialogueName">You:</b> I like the <span id="talkAnimal">cat</span>.</p>
+              </div>
+              <div class="choice-row">
+                <button data-animal="cat">🐱 cat</button>
+                <button data-animal="fox">🦊 fox</button>
+                <button data-animal="bear">🐻 bear</button>
+              </div>
+              <button class="primary-btn wide" id="speakBtn" type="button">🔊 点击语音 / Speak</button>
+            </article>
+          </div>
+        </section>
+
+        <section id="speaking" class="page" aria-labelledby="speaking-title">
+          <div class="page-title">
+            <div>
+              <h1 id="speaking-title">AI Speaking Lab</h1>
+              <p>内置 AI 口语练习 · 场景对话和跟读反馈</p>
+            </div>
+            <div class="score-pill">🎙️ <span id="speakingCount">0</span> 次</div>
+          </div>
+
+          <div class="speaking-layout">
+            <article class="planet-card">
+              <div class="planet-orbit" aria-hidden="true">
+                <div class="planet">🪐</div>
+                <span class="orbit-dot one">⭐</span>
+                <span class="orbit-dot two">🚀</span>
+                <span class="orbit-dot three">💬</span>
+              </div>
+              <h2 id="scenarioTitle">Hello Bobo</h2>
+              <p id="scenarioGoal">练习问候和自我介绍。</p>
+              <div class="vocab-preview" id="vocabPreview" aria-label="场景重点词"></div>
+              <div class="scenario-list" id="scenarioList" aria-label="口语场景"></div>
+            </article>
+
+            <article class="ai-practice-card">
+              <div class="ai-chat" id="aiChat" aria-live="polite"></div>
+              <div class="word-coach" id="wordCoach">
+                <span>🔎</span>
+                <div>
+                  <strong>点英文单词学习</strong>
+                  <p>点击对话里的重点词，会看到中文、例句和发音。</p>
+                </div>
+              </div>
+              <div class="answer-bank" id="answerBank" aria-label="回答选项"></div>
+              <div class="speaking-actions">
+                <button class="primary-btn" id="playPromptBtn" type="button">🔊 听 Bobo</button>
+                <button class="pink-btn" id="recordSpeakingBtn" type="button">🎙️ 跟读回答</button>
+                <button class="soft-btn" id="nextPromptBtn" type="button">下一句 →</button>
+              </div>
+              <p class="feedback" id="speakingFeedback">选择一个场景，开始和 Bobo 对话。</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="report" class="page" aria-labelledby="report-title">
+          <div class="page-title">
+            <div>
+              <h1 id="report-title">Parent Report</h1>
+              <p>家长端 · 本周学习报告</p>
+            </div>
+            <button class="soft-btn">导出报告</button>
+          </div>
+          <div class="kpi-grid">
+            <article><span>⏱️</span><strong>86 分钟</strong><small>本周学习时长</small></article>
+            <article><span>🔥</span><strong>7 天</strong><small>连续打卡</small></article>
+            <article><span>⭐</span><strong>48 颗</strong><small>获得星星</small></article>
+            <article><span>🎧</span><strong>92%</strong><small>跟读完成率</small></article>
+          </div>
+          <div class="report-grid">
+            <article class="chart-card">
+              <h2>Study Time</h2>
+              <div class="bar-chart" aria-label="学习时长柱状图">
+                <span style="height: 38%"><b>M</b></span>
+                <span style="height: 62%"><b>T</b></span>
+                <span style="height: 44%"><b>W</b></span>
+                <span style="height: 76%"><b>T</b></span>
+                <span style="height: 58%"><b>F</b></span>
+                <span style="height: 88%"><b>S</b></span>
+                <span style="height: 30%"><b>S</b></span>
+              </div>
+            </article>
+            <article class="skills-card">
+              <h2>Skill Details</h2>
+              <div class="skill-row"><span>Letters 字母</span><b>95%</b><i style="width:95%"></i></div>
+              <div class="skill-row"><span>Phonics 拼读</span><b>82%</b><i style="width:82%"></i></div>
+              <div class="skill-row"><span>Words 单词</span><b>76%</b><i style="width:76%"></i></div>
+              <div class="skill-row"><span>Dialogue 对话</span><b>68%</b><i style="width:68%"></i></div>
+            </article>
+            <article class="medal-card">
+              <h2>Badge Wall</h2>
+              <div class="medals">
+                <span>🏅<small>ABC Star</small></span>
+                <span>🎖️<small>Phonics Hero</small></span>
+                <span>🏆<small>7-Day Streak</small></span>
+                <span>💎<small>Story Buddy</small></span>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

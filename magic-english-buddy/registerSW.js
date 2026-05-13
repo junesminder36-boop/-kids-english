@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/magic-english-buddy/sw.js', { scope: '/magic-english-buddy/' })})}
